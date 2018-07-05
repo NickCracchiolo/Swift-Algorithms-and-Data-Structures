@@ -27,25 +27,21 @@ public struct LinkedListIndex<T:Comparable>: Comparable {
 
 public class LinkedList<T:Comparable> {
     private var head:Node<T>?
+    private weak var tail:Node<T>?
     public var count:Int
     
     public var isEmpty: Bool {
         return self.head == nil
     }
     
-    public var last:T? {
-        guard var h = head else {
-            return nil
-        }
-        while let next = h.next {
-            h = next
-        }
-        return h.item
+    public var last: T? {
+        return tail?.item
     }
     
     public init(startingItem:T? = nil) {
         if let i = startingItem {
             self.head = Node<T>(item:i)
+            self.tail = self.head
             count = 1
         } else {
             count = 0
@@ -68,6 +64,7 @@ public class LinkedList<T:Comparable> {
     public func addFirst(item:T) {
         guard let h = head else {
             self.head = Node<T>(item:item)
+            self.tail = self.head
             return
         }
         let newNode = Node<T>(item:item, nextNode:h)
@@ -80,6 +77,7 @@ public class LinkedList<T:Comparable> {
     public func addLast(item:T) {
         guard var h = head else {
             self.head = Node<T>(item:item)
+            self.tail = self.head
             return
         }
         while let next = h.next {
@@ -87,10 +85,11 @@ public class LinkedList<T:Comparable> {
         }
         let node = Node<T>(item:item, nextNode:nil, prevNode:h)
         h.next = node
+        self.tail = node
         count += 1
     }
     
-    public func remove(atIndex index:Index) -> Bool {
+    @discardableResult public func remove(atIndex index:Index) -> Bool {
         guard let node = index.node else {
             return false
         }
@@ -107,6 +106,7 @@ public class LinkedList<T:Comparable> {
         }
         guard let next = node.next else {
             prev.next = nil
+            self.tail = prev
             return true
         }
         prev.next = next
@@ -125,7 +125,7 @@ public class LinkedList<T:Comparable> {
     }
 }
 
-extension LinkedList: Collection {
+extension LinkedList: BidirectionalCollection {
     public typealias Index = LinkedListIndex<T>
     
     public var startIndex:Index {
@@ -134,13 +134,10 @@ extension LinkedList: Collection {
         }
     }
     
-    /// Returns the index of the last element in the LinkedList. O(1)
+    /// Returns the index of the last element in the LinkedList.
     public var endIndex:Index {
         get {
-            guard let h = head else {
-                return LinkedListIndex<T>(node: nil, tag: startIndex.tag)
-            }
-            return LinkedListIndex<T>(node: h, tag: count)
+            return LinkedListIndex<T>(node: tail, tag: count)
         }
     }
     
@@ -152,5 +149,9 @@ extension LinkedList: Collection {
     
     public func index(after i: LinkedList<T>.Index) -> LinkedList<T>.Index {
         return LinkedListIndex<T>(node: i.node?.next, tag: i.tag + 1)
+    }
+    
+    public func index(before i: LinkedListIndex<T>) -> LinkedListIndex<T> {
+        return LinkedListIndex<T>(node: i.node?.prev, tag: i.tag - 1)
     }
 }

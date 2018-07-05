@@ -14,3 +14,11 @@ list.addLast(item: 3)
 
 list.printList()
 
+print(list.endIndex)
+print(list.startIndex)
+
+list.remove(atIndex: list.endIndex)
+
+print(list.endIndex)
+
+
